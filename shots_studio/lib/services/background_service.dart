@@ -523,6 +523,9 @@ class BackgroundProcessingService {
       final openAIModelId = isOpenAICompatible
           ? await OpenAICompatibilityService.getSelectedModel()
           : null;
+      if (isOpenAICompatible && (openAIModelId == null || openAIModelId.trim().isEmpty)) {
+        throw StateError('OpenAI-compatible remote model ID is not configured.');
+      }
 
       // Initialize safety monitoring based on model type
       final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
