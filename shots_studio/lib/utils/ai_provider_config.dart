@@ -49,7 +49,10 @@ class AIProviderConfig {
   };
 
   static bool requiresApiKey(String model) {
-    return modelRequiresApiKey[model] ?? false;
+    final configuredRequirement = modelRequiresApiKey[model];
+    if (configuredRequirement != null) return configuredRequirement;
+    // Gemini model IDs discovered at runtime are still remote API models.
+    return model.toLowerCase().startsWith('gemini-');
   }
 
   // Models capable of advanced extraction (dates, events, locations, flights)
@@ -93,15 +96,19 @@ class AIProviderConfig {
         return entry.key;
       }
     }
+    // Models from the live catalog may not be present in the fallback map.
+    if (model.toLowerCase().startsWith('gemini-')) return 'gemini';
     return 'unknown';
   }
 
   static int getMaxParallelLimitForModel(String model) {
-    return modelMaxParallelLimits[model] ?? 4;
+    return modelMaxParallelLimits[model] ??
+        (model.toLowerCase().startsWith('gemini-') ? 16 : 4);
   }
 
   static int getMaxCategorizationLimitForModel(String model) {
-    return modelMaxCategorizationLimits[model] ?? 20;
+    return modelMaxCategorizationLimits[model] ??
+        (model.toLowerCase().startsWith('gemini-') ? 50 : 20);
   }
 
   static int getEffectiveMaxParallel(String model, int globalMaxParallel) {
