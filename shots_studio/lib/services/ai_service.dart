@@ -781,9 +781,9 @@ class OpenAICompatibleAPIProvider implements APIProvider {
   ) async {
     final providerConfig = config.providerSpecificConfig;
     final rawBaseUrl =
-        providerConfig['openaiBaseUrl']?.toString() ?? 'http://localhost:11434';
+        providerConfig['openaiBaseUrl']?.toString() ?? 'http://localhost:11434/v1';
     final requestApiKey =
-        providerConfig['openaiApiKey']?.toString() ?? config.apiKey;
+        providerConfig['openaiApiKey']?.toString() ?? '';
     final url = OpenAICompatibilityService.buildChatCompletionsUri(rawBaseUrl);
 
     final headers = <String, String>{'Content-Type': 'application/json'};
