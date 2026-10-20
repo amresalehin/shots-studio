@@ -169,6 +169,7 @@ class _OpenAICompatibleSectionState extends State<OpenAICompatibleSection> {
             const SizedBox(height: 12),
             TextField(
               controller: _modelController,
+              onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(
                 labelText: 'Remote model ID',
                 hintText: 'e.g. gpt-4o-mini or provider/model-name',
