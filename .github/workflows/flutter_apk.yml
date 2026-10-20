@@ -1,6 +1,10 @@
 name: Flutter APK
 
 on:
+  push:
+    paths:
+      - "shots_studio/**"
+      - ".github/workflows/flutter_apk.yml"
   pull_request:
     branches: [main]
     paths:
