@@ -1,5 +1,6 @@
 class AIProviderConfig {
-  // Available models for each provider
+  // Available models for each provider. OpenAI-compatible models are configured
+  // by remote model ID and are added dynamically from OpenAICompatibilityService.
   static const Map<String, List<String>> providerModels = {
     'gemini': [
       'gemini-2.0-flash',
@@ -7,6 +8,7 @@ class AIProviderConfig {
       'gemini-2.5-flash',
       'gemini-2.5-pro',
     ],
+    'openai-compatible': ['openai-compatible'],
     'gemma': ['gemma'],
     'ocr': ['tesseract-ocr'],
     'none': ['No AI Model'],
@@ -18,6 +20,7 @@ class AIProviderConfig {
     'gemini-2.5-flash': 16,
     'gemini-2.5-flash-lite': 16,
     'gemini-2.5-pro': 32,
+    'openai-compatible': 8,
     'gemma': 1,
     'tesseract-ocr': 1,
   };
@@ -28,22 +31,25 @@ class AIProviderConfig {
     'gemini-2.5-flash': 50,
     'gemini-2.5-flash-lite': 50,
     'gemini-2.5-pro': 50,
+    'openai-compatible': 50,
     'gemma': 10,
     'tesseract-ocr': 0,
   };
 
-  // Model-specific API key requirements
+  // Model-specific API key requirements. OpenAI-compatible endpoints may be
+  // local and unauthenticated, so credentials are optional.
   static const Map<String, bool> modelRequiresApiKey = {
     'gemini-2.0-flash': true,
     'gemini-2.5-flash': true,
     'gemini-2.5-flash-lite': true,
     'gemini-2.5-pro': true,
+    'openai-compatible': false,
     'gemma': false,
     'tesseract-ocr': false,
   };
 
   static bool requiresApiKey(String model) {
-    return modelRequiresApiKey[model] ?? false; // Default to false
+    return modelRequiresApiKey[model] ?? false;
   }
 
   // Models capable of advanced extraction (dates, events, locations, flights)
@@ -52,6 +58,7 @@ class AIProviderConfig {
     'gemini-2.5-flash': true,
     'gemini-2.5-flash-lite': false,
     'gemini-2.5-pro': true,
+    'openai-compatible': true,
     'gemma': false,
     'tesseract-ocr': false,
   };
@@ -63,26 +70,23 @@ class AIProviderConfig {
   // Preference keys for provider settings
   static const Map<String, String> providerPrefKeys = {
     'gemini': 'ai_provider_gemini_enabled',
+    'openai-compatible': 'ai_provider_openai_compatible_enabled',
     'gemma': 'ai_provider_gemma_enabled',
     'ocr': 'ai_provider_ocr_enabled',
   };
 
-  // Get all available providers (excluding 'none')
   static List<String> getProviders() {
     return providerModels.keys.where((key) => key != 'none').toList();
   }
 
-  // Get models for a specific provider
   static List<String> getModelsForProvider(String provider) {
     return providerModels[provider] ?? [];
   }
 
-  // Get preference key for a provider
   static String? getPrefKeyForProvider(String provider) {
     return providerPrefKeys[provider];
   }
 
-  // Check if a model belongs to a specific provider
   static String getProviderForModel(String model) {
     for (final entry in providerModels.entries) {
       if (entry.value.contains(model)) {
@@ -92,18 +96,14 @@ class AIProviderConfig {
     return 'unknown';
   }
 
-  // Get the model-specific maxParallel limit
   static int getMaxParallelLimitForModel(String model) {
-    return modelMaxParallelLimits[model] ?? 4; // Default to 4 if not found
+    return modelMaxParallelLimits[model] ?? 4;
   }
 
-  // Get the model-specific max categorization limit
   static int getMaxCategorizationLimitForModel(String model) {
-    return modelMaxCategorizationLimits[model] ??
-        20; // Default to 20 if not found
+    return modelMaxCategorizationLimits[model] ?? 20;
   }
 
-  // Get the effective maxParallel value (minimum of model limit and global preference)
   static int getEffectiveMaxParallel(String model, int globalMaxParallel) {
     final modelLimit = getMaxParallelLimitForModel(model);
     return modelLimit < globalMaxParallel ? modelLimit : globalMaxParallel;
