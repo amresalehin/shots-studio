@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shots_studio/services/analytics/analytics_service.dart';
 import 'package:shots_studio/screens/ai_settings_screen.dart';
 import 'package:shots_studio/utils/ai_provider_config.dart';
+import 'package:shots_studio/services/gemini_model_catalog_service.dart';
 import 'package:shots_studio/l10n/app_localizations.dart';
 
 class QuickSettingsSection extends StatefulWidget {
@@ -54,9 +55,19 @@ class _QuickSettingsSectionState extends State<QuickSettingsSection> {
       if (prefKey != null) {
         final isEnabled = prefs.getBool(prefKey) ?? (provider == 'gemini');
         if (isEnabled) {
-          availableModels.addAll(
-            AIProviderConfig.getModelsForProvider(provider),
-          );
+          if (provider == 'gemini') {
+            final catalogModels =
+                await GeminiModelCatalogService.getCachedModelIds();
+            availableModels.addAll(
+              catalogModels.isNotEmpty
+                  ? catalogModels
+                  : AIProviderConfig.getModelsForProvider(provider),
+            );
+          } else {
+            availableModels.addAll(
+              AIProviderConfig.getModelsForProvider(provider),
+            );
+          }
         }
       }
     }
