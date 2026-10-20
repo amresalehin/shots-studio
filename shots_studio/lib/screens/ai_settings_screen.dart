@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shots_studio/l10n/app_localizations.dart';
 import 'package:shots_studio/services/gemma_download_service.dart';
+import 'package:shots_studio/services/openai_compatibility_service.dart';
 import 'package:shots_studio/widgets/ai_settings/index.dart';
 import 'dart:io';
 import 'package:shots_studio/services/logger_service.dart';
@@ -666,6 +667,20 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
         );
       }
       return;
+    }
+
+    // Persist provider selection before returning to the model picker.
+    if (provider == 'openai-compatible' && enabled) {
+      final modelId = await OpenAICompatibilityService.getSelectedModel();
+      if (modelId.trim().isEmpty) {
+        if (mounted) {
+          SnackbarService().showWarning(
+            context,
+            'Save a remote model ID in the OpenAI-compatible settings first.',
+          );
+        }
+        return;
+      }
     }
 
     // Show warning dialog when enabling Gemma
