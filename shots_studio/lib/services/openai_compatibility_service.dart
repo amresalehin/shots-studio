@@ -49,7 +49,14 @@ class OpenAICompatibilityService {
     var normalized = trimmed;
     if (!normalized.startsWith('http://') &&
         !normalized.startsWith('https://')) {
-      normalized = 'https://$normalized';
+      // Keep localhost/private-network endpoints usable without requiring
+      // users to type a scheme; public endpoints can use HTTPS explicitly.
+      final isLocal = normalized.startsWith('localhost') ||
+          normalized.startsWith('127.0.0.1') ||
+          normalized.startsWith('10.') ||
+          normalized.startsWith('192.168.') ||
+          RegExp(r'^172\.(1[6-9]|2[0-9]|3[0-1])\.').hasMatch(normalized);
+      normalized = '${isLocal ? 'http' : 'https'}://$normalized';
     }
 
     while (normalized.endsWith('/')) {
