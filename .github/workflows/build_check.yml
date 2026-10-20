@@ -41,7 +41,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version-file: shots_studio/flutter.version
+          flutter-version: "3.35.7"
           channel: "stable"
           cache: true
 
