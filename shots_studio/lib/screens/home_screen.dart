@@ -43,6 +43,7 @@ import 'package:shots_studio/utils/build_source.dart';
 
 import 'package:shots_studio/services/haptic_service.dart';
 import 'package:shots_studio/services/logger_service.dart';
+import 'package:shots_studio/services/openai_compatibility_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(bool)? onAmoledModeChanged;
@@ -803,10 +804,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return;
     }
 
-    // Check for API key
-    //  if gemma or tesseract-ocr skip API key check
+    // Check provider-specific credentials. OpenAI-compatible endpoints may be
+    // unauthenticated (for local servers) and never use the Gemini API key.
+    if (_selectedModelName == 'openai-compatible') {
+      final baseUrl = await OpenAICompatibilityService.getBaseUrl();
+      final modelId = await OpenAICompatibilityService.getSelectedModel();
+      if (baseUrl.trim().isEmpty || modelId.trim().isEmpty) {
+        SnackbarService().showError(
+          context,
+          'Configure the OpenAI-compatible base URL and remote model ID in AI Settings.',
+        );
+        return;
+      }
+    }
+
+    // If Gemma or Tesseract is selected, no remote API key is required.
     if (_selectedModelName == 'gemma' ||
-        _selectedModelName == 'tesseract-ocr') {
+        _selectedModelName == 'tesseract-ocr' ||
+        _selectedModelName == 'openai-compatible') {
       LoggerService.log(
         "Main app: Using ${_selectedModelName} model, no API key required",
       );
@@ -1623,7 +1638,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _selectedModelName.toLowerCase() != 'none' &&
         ((_apiKey != null && _apiKey!.isNotEmpty) ||
             _selectedModelName == 'gemma' ||
-            _selectedModelName == 'tesseract-ocr')) {
+            _selectedModelName == 'tesseract-ocr' ||
+            _selectedModelName == 'openai-compatible')) {
       // Check if there are any unprocessed screenshots
       final unprocessedScreenshots =
           _activeScreenshots.where((s) => !s.aiProcessed).toList();
