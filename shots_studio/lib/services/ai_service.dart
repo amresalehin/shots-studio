@@ -894,7 +894,7 @@ class OpenAICompatibleAPIProvider implements APIProvider {
     Map<String, dynamic> additionalParams = const {},
   }) {
     final params = Map<String, dynamic>.from(additionalParams);
-    final modelName = params.remove('modelName')?.toString() ?? 'unknown-model';
+    params.remove('modelName');
 
     final metadataText = screenshotMetadata
         .map(
