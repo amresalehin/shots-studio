@@ -5,22 +5,51 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shots_studio/services/logger_service.dart';
 
+/// Owns configuration and model discovery for any OpenAI-compatible endpoint.
 class OpenAICompatibilityService {
   static const String baseUrlPrefKey = 'openai_compatible_base_url';
   static const String apiKeyPrefKey = 'openai_compatible_api_key';
   static const String selectedModelPrefKey = 'openai_compatible_selected_model';
   static const String modelsCachePrefKey = 'openai_compatible_models_cache';
 
+  static const String defaultBaseUrl = 'http://localhost:11434/v1';
+
+  static Future<String> getBaseUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    return normalizeBaseUrl(prefs.getString(baseUrlPrefKey) ?? defaultBaseUrl);
+  }
+
+  static Future<String> getApiKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(apiKeyPrefKey) ?? '';
+  }
+
+  static Future<String> getSelectedModel() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(selectedModelPrefKey) ?? '';
+  }
+
+  static Future<void> saveConfiguration({
+    required String baseUrl,
+    required String apiKey,
+    required String modelId,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(baseUrlPrefKey, normalizeBaseUrl(baseUrl));
+    await prefs.setString(apiKeyPrefKey, apiKey.trim());
+    await prefs.setString(selectedModelPrefKey, modelId.trim());
+  }
+
   static String normalizeBaseUrl(String input) {
     final trimmed = input.trim();
     if (trimmed.isEmpty) {
-      return 'http://localhost:11434';
+      return defaultBaseUrl;
     }
 
     var normalized = trimmed;
     if (!normalized.startsWith('http://') &&
         !normalized.startsWith('https://')) {
-      normalized = 'http://$normalized';
+      normalized = 'https://$normalized';
     }
 
     while (normalized.endsWith('/')) {
@@ -89,8 +118,8 @@ class OpenAICompatibilityService {
     required Map<String, String> headers,
     required Duration timeout,
   }) async {
-    final modelsUri = buildModelsUri(baseUrl);
-    final response = await http.get(modelsUri, headers: headers).timeout(timeout);
+    final response =
+        await http.get(buildModelsUri(baseUrl), headers: headers).timeout(timeout);
     if (response.statusCode != 200) {
       return [];
     }
@@ -100,13 +129,11 @@ class OpenAICompatibilityService {
       return [];
     }
 
-    final models = (decoded['data'] as List)
+    return (decoded['data'] as List)
         .whereType<Map>()
         .map((item) => item['id']?.toString() ?? '')
         .where((id) => id.isNotEmpty)
         .toList();
-
-    return models;
   }
 
   static Future<List<String>> _fetchFromOllamaTags({
@@ -115,7 +142,8 @@ class OpenAICompatibilityService {
     required Duration timeout,
   }) async {
     final normalized = normalizeBaseUrl(baseUrl);
-    final tagsUri = Uri.parse('$normalized/api/tags');
+    final origin = normalized.replaceFirst(RegExp(r'/v1$'), '');
+    final tagsUri = Uri.parse('$origin/api/tags');
 
     final response = await http.get(tagsUri, headers: headers).timeout(timeout);
     if (response.statusCode != 200) {
