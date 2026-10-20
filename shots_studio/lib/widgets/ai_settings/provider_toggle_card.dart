@@ -24,6 +24,10 @@ class ProviderToggleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final models = AIProviderConfig.getModelsForProvider(provider);
+    final modelSummary =
+        provider == 'gemini'
+            ? 'Refresh the Gemini model catalog in the API key section below'
+            : models.join(', ');
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
@@ -52,7 +56,7 @@ class ProviderToggleCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    disabledReason ?? models.join(', '),
+                    disabledReason ?? modelSummary,
                     style: TextStyle(
                       fontSize: 12,
                       color:
