@@ -38,6 +38,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: shots-studio-release-apk
-          path: shots_studio/build/app/outputs/flutter-apk/shots_studio-github-release-*.apk
+          path: shots_studio/build/app/outputs/flutter-apk/app-github-release.apk
           if-no-files-found: error
           retention-days: 14
