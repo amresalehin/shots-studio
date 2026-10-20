@@ -804,6 +804,13 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
             const SizedBox(height: 12),
             ApiKeySection(isGeminiEnabled: _providerStates['gemini'] ?? false),
 
+            // --- OpenAI-compatible endpoint settings ---
+            if (_providerStates['openai-compatible'] ?? false) ...[
+              const SizedBox(height: 12),
+              _buildSectionLabel(theme, 'OpenAI-Compatible Provider'),
+              const OpenAICompatibleSection(),
+            ],
+
             // --- Local Models Section ---
             const SizedBox(height: 12),
             _buildSectionLabel(theme, 'Local Models'),
