@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -24,8 +23,6 @@ class GeminiCatalogModel {
 /// Fetches and caches the models actually exposed by the configured Gemini API
 /// key. The picker can still use its built-in fallback list before a refresh.
 class GeminiModelCatalogService {
-  static const String _modelsEndpoint =
-      'https://generativelanguage.googleapis.com/v1beta/models';
   static const String _cachedIdsKey = 'gemini_model_catalog_ids';
   static const String _cachedAtKey = 'gemini_model_catalog_fetched_at';
   static const int _pageSize = 1000;
