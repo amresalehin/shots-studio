@@ -14,6 +14,7 @@ import 'package:shots_studio/utils/ai_provider_config.dart';
 import 'package:shots_studio/services/server_message_service.dart';
 import 'package:shots_studio/services/notification_service.dart';
 import 'package:shots_studio/services/logger_service.dart';
+import 'package:shots_studio/services/openai_compatibility_service.dart';
 import 'package:shots_studio/utils/ai_error_utils.dart';
 
 @pragma('vm:entry-point')
@@ -512,6 +513,16 @@ class BackgroundProcessingService {
       final String modelName = event['modelName'] as String;
       final int maxParallel = event['maxParallel'] as int;
       final String? collectionsJson = event['collections'] as String?;
+      final bool isOpenAICompatible = modelName == 'openai-compatible';
+      final openAIBaseUrl = isOpenAICompatible
+          ? await OpenAICompatibilityService.getBaseUrl()
+          : null;
+      final openAIApiKey = isOpenAICompatible
+          ? await OpenAICompatibilityService.getApiKey()
+          : null;
+      final openAIModelId = isOpenAICompatible
+          ? await OpenAICompatibilityService.getSelectedModel()
+          : null;
 
       // Initialize safety monitoring based on model type
       final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -549,9 +560,19 @@ class BackgroundProcessingService {
 
       // Set up AI service
       final config = AIConfig(
-        apiKey: apiKey,
-        modelName: modelName,
+        // OpenAI-compatible auth is isolated in providerSpecificConfig; never
+        // reuse the Gemini key for a different provider.
+        apiKey: isOpenAICompatible ? '' : apiKey,
+        modelName: isOpenAICompatible ? 'openai-compatible' : modelName,
         maxParallel: effectiveMaxParallel,
+        providerSpecificConfig: isOpenAICompatible
+            ? {
+                'provider': 'openai_compatible',
+                'openaiBaseUrl': openAIBaseUrl ?? '',
+                'openaiApiKey': openAIApiKey ?? '',
+                'openaiModelId': openAIModelId ?? '',
+              }
+            : const {},
       );
 
       final analysisService = ScreenshotAnalysisService(config);
