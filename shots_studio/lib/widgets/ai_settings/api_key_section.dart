@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shots_studio/services/analytics/analytics_service.dart';
 import 'package:shots_studio/services/api_validation_service.dart';
+import 'package:shots_studio/services/gemini_model_catalog_service.dart';
 import 'package:shots_studio/services/snackbar_service.dart';
 import 'package:shots_studio/l10n/app_localizations.dart';
 
@@ -20,6 +21,8 @@ class _ApiKeySectionState extends State<ApiKeySection> {
   final FocusNode _apiKeyFocusNode = FocusNode();
   bool _isValidatingApiKey = false;
   bool? _apiKeyValid;
+  bool _isRefreshingModelCatalog = false;
+  int _cachedModelCount = 0;
 
   static const String _apiKeyPrefKey = 'apiKey';
 
@@ -33,6 +36,7 @@ class _ApiKeySectionState extends State<ApiKeySection> {
     AnalyticsService().logFeatureUsed('view_api_key_settings');
 
     _loadApiKey();
+    _loadModelCatalogCache();
   }
 
   @override
@@ -55,6 +59,46 @@ class _ApiKeySectionState extends State<ApiKeySection> {
   Future<void> _saveApiKey(String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_apiKeyPrefKey, value);
+  }
+
+  Future<void> _loadModelCatalogCache() async {
+    final models = await GeminiModelCatalogService.getCachedModelIds();
+    if (mounted) {
+      setState(() => _cachedModelCount = models.length);
+    }
+  }
+
+  Future<void> _refreshModelCatalog() async {
+    if (_isRefreshingModelCatalog) return;
+
+    final apiKey = _apiKeyController.text.trim();
+    if (apiKey.isEmpty) {
+      SnackbarService().showWarning(context, 'Enter a Gemini API key first.');
+      return;
+    }
+
+    setState(() => _isRefreshingModelCatalog = true);
+    try {
+      final models = await GeminiModelCatalogService.refreshModels(
+        apiKey: apiKey,
+      );
+      if (!mounted) return;
+      setState(() {
+        _cachedModelCount = models.length;
+        _isRefreshingModelCatalog = false;
+      });
+      SnackbarService().showSuccess(
+        context,
+        'Gemini model catalog refreshed: ${models.length} models available.',
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isRefreshingModelCatalog = false);
+      SnackbarService().showError(
+        context,
+        'Could not refresh Gemini model catalog: $error',
+      );
+    }
   }
 
   Future<void> _validateApiKey() async {
@@ -403,6 +447,40 @@ class _ApiKeySectionState extends State<ApiKeySection> {
                 ),
               ],
             ),
+
+            if (_apiKeyController.text.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed:
+                      _isRefreshingModelCatalog ? null : _refreshModelCatalog,
+                  icon:
+                      _isRefreshingModelCatalog
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.refresh_rounded, size: 18),
+                  label: Text(
+                    _isRefreshingModelCatalog
+                        ? 'Refreshing Gemini models...'
+                        : 'Refresh Gemini model catalog',
+                  ),
+                ),
+              ),
+              if (_cachedModelCount > 0) ...[
+                const SizedBox(height: 6),
+                Text(
+                  '$_cachedModelCount Gemini models cached for the model picker.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ],
 
             // Helper info for empty state
             if (_apiKeyController.text.isEmpty) ...[
