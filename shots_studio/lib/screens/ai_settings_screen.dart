@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:shots_studio/l10n/app_localizations.dart';
 import 'package:shots_studio/services/gemma_download_service.dart';
 import 'package:shots_studio/services/openai_compatibility_service.dart';
+import 'package:shots_studio/services/gemini_model_catalog_service.dart';
 import 'package:shots_studio/widgets/ai_settings/index.dart';
 import 'dart:io';
 import 'package:shots_studio/services/logger_service.dart';
@@ -255,7 +256,7 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
 
       // If current model is Gemma, switch to first available model
       if (_selectedModelName.toLowerCase().contains('gemma')) {
-        final availableModels = _getAvailableModels();
+        final availableModels = await _getAvailableModels();
         if (availableModels.isNotEmpty) {
           final newModel = availableModels.first;
           setState(() {
@@ -453,12 +454,22 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
     _downloadService.cancelDownload();
   }
 
-  List<String> _getAvailableModels() {
-    List<String> availableModels = [];
+  Future<List<String>> _getAvailableModels() async {
+    final availableModels = <String>[];
 
     for (final provider in AIProviderConfig.getProviders()) {
       if (_providerStates[provider] == true) {
-        availableModels.addAll(AIProviderConfig.getModelsForProvider(provider));
+        if (provider == 'gemini') {
+          final catalogModels =
+              await GeminiModelCatalogService.getCachedModelIds();
+          availableModels.addAll(
+            catalogModels.isNotEmpty
+                ? catalogModels
+                : AIProviderConfig.getModelsForProvider(provider),
+          );
+        } else {
+          availableModels.addAll(AIProviderConfig.getModelsForProvider(provider));
+        }
       }
     }
 
@@ -706,7 +717,7 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
     );
 
     // If the current model belongs to the disabled provider, switch to first available model
-    final availableModels = _getAvailableModels();
+    final availableModels = await _getAvailableModels();
     if (availableModels.isNotEmpty &&
         !availableModels.contains(_selectedModelName)) {
       final newModel = availableModels.first;
