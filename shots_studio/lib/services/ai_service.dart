@@ -848,7 +848,8 @@ class OpenAICompatibleAPIProvider implements APIProvider {
     Map<String, dynamic> additionalParams = const {},
   }) {
     final params = Map<String, dynamic>.from(additionalParams);
-    final modelName = params.remove('modelName')?.toString() ?? 'unknown-model';
+    // Configured model ID is applied at request time from the provider's
+    // independently persisted OpenAI-compatible configuration.
 
     final content = <Map<String, dynamic>>[
       {'type': 'text', 'text': prompt},
@@ -877,7 +878,7 @@ class OpenAICompatibleAPIProvider implements APIProvider {
     }
 
     return {
-      'model': modelName,
+      'model': 'openai-compatible',
       'messages': [
         {'role': 'user', 'content': content},
       ],
@@ -910,7 +911,7 @@ class OpenAICompatibleAPIProvider implements APIProvider {
         : '$prompt\n\nScreenshots to analyze (${screenshotMetadata.length} total):\n$metadataText';
 
     return {
-      'model': modelName,
+      'model': 'openai-compatible',
       'messages': [
         {
           'role': 'user',
