@@ -181,8 +181,4 @@ class OpenAICompatibilityService {
   }
 
 
-  static Future<List<String>> getModelsCache() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getStringList(modelsCachePrefKey) ?? [];
-  }
 }
