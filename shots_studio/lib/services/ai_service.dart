@@ -804,9 +804,14 @@ class OpenAICompatibleAPIProvider implements APIProvider {
           .timeout(Duration(seconds: config.timeoutSeconds));
 
       final responseJson = jsonDecode(response.body);
-      if (response.statusCode != 200) {
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        final errorMessage = responseJson is Map
+            ? (responseJson['error'] is Map
+                ? responseJson['error']['message']?.toString()
+                : responseJson['message']?.toString())
+            : null;
         return {
-          'error': responseJson['error']?['message'] ?? 'API Error',
+          'error': errorMessage ?? 'API Error',
           'statusCode': response.statusCode,
           'rawResponse': response.body,
         };
