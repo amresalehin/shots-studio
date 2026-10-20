@@ -784,6 +784,7 @@ class OpenAICompatibleAPIProvider implements APIProvider {
         providerConfig['openaiBaseUrl']?.toString() ?? 'http://localhost:11434/v1';
     final requestApiKey =
         providerConfig['openaiApiKey']?.toString() ?? '';
+    final configuredModelId = providerConfig['openaiModelId']?.toString().trim() ?? '';
     final url = OpenAICompatibilityService.buildChatCompletionsUri(rawBaseUrl);
 
     final headers = <String, String>{'Content-Type': 'application/json'};
@@ -792,6 +793,12 @@ class OpenAICompatibleAPIProvider implements APIProvider {
     }
 
     try {
+      // The model ID configured for the remote endpoint takes precedence over
+      // the internal sentinel used to route the request to this provider.
+      if (configuredModelId.isNotEmpty) {
+        requestData = Map<String, dynamic>.from(requestData)
+          ..['model'] = configuredModelId;
+      }
       final response = await http
           .post(url, headers: headers, body: jsonEncode(requestData))
           .timeout(Duration(seconds: config.timeoutSeconds));
