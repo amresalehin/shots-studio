@@ -55,10 +55,9 @@ class ModelSelectionGuideDialog {
                     icon: Icons.cloud,
                     iconColor: Colors.blue,
                     useCases: [
-                      '2.0 Flash - Basic, least expensive',
-                      '2.5 Flash Lite - Best balance (recommended)',
-                      '2.5 Flash - High quality, fast',
-                      '2.5 Pro - Maximum accuracy',
+                      'Refresh the Gemini model catalog to see models enabled for your API key',
+                      'Flash models generally prioritize speed and efficiency',
+                      'Pro models generally target more complex reasoning tasks',
                     ],
                     recommended: true,
                   ),
