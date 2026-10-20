@@ -326,8 +326,10 @@ class _ApiKeySectionState extends State<ApiKeySection> {
                           onPressed: () {
                             _apiKeyController.clear();
                             _saveApiKey('');
+                            GeminiModelCatalogService.clearCache();
                             setState(() {
                               _apiKeyValid = null;
+                              _cachedModelCount = 0;
                             });
                             ApiValidationService().clearCache();
                             AnalyticsService().logFeatureUsed(
