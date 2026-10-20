@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shots_studio/services/openai_compatibility_service.dart';
 import 'package:shots_studio/services/snackbar_service.dart';
 
@@ -46,6 +47,8 @@ class _OpenAICompatibleSectionState extends State<OpenAICompatibleSection> {
       apiKey: _apiKeyController.text,
       modelId: _modelController.text,
     );
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('ai_provider_openai_compatible_enabled', true);
     if (mounted) {
       SnackbarService().showSuccess(context, 'OpenAI-compatible settings saved');
     }
