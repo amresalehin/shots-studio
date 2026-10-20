@@ -20,6 +20,11 @@ class OpenAICompatibilityService {
     await prefs.setStringList(modelsCachePrefKey, models);
   }
 
+  static Future<List<String>> getModelsCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(modelsCachePrefKey) ?? [];
+  }
+
   static Future<String> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     return normalizeBaseUrl(prefs.getString(baseUrlPrefKey) ?? defaultBaseUrl);
