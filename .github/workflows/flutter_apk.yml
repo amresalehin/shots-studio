@@ -31,13 +31,13 @@ jobs:
         working-directory: shots_studio
 
       - name: Build release APK
-        run: flutter build apk --release
+        run: flutter build apk --flavor github --dart-define=BUILD_SOURCE=github --release
         working-directory: shots_studio
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: shots-studio-release-apk
-          path: shots_studio/build/app/outputs/flutter-apk/app-release.apk
+          path: shots_studio/build/app/outputs/flutter-apk/shots_studio-github-release-*.apk
           if-no-files-found: error
           retention-days: 14
