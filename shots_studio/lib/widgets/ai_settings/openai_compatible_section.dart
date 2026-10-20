@@ -5,7 +5,9 @@ import 'package:shots_studio/services/snackbar_service.dart';
 
 /// Configuration UI kept separate from Gemini's API-key flow.
 class OpenAICompatibleSection extends StatefulWidget {
-  const OpenAICompatibleSection({super.key});
+  final VoidCallback? onSaved;
+
+  const OpenAICompatibleSection({super.key, this.onSaved});
 
   @override
   State<OpenAICompatibleSection> createState() => _OpenAICompatibleSectionState();
@@ -54,6 +56,7 @@ class _OpenAICompatibleSectionState extends State<OpenAICompatibleSection> {
     );
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('ai_provider_openai_compatible_enabled', true);
+    widget.onSaved?.call();
     if (mounted) {
       SnackbarService().showSuccess(context, 'OpenAI-compatible settings saved');
     }
