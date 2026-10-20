@@ -42,10 +42,15 @@ class _OpenAICompatibleSectionState extends State<OpenAICompatibleSection> {
   }
 
   Future<void> _saveSettings() async {
+    final modelId = _modelController.text.trim();
+    if (modelId.isEmpty) {
+      SnackbarService().showWarning(context, 'Enter a remote model ID first.');
+      return;
+    }
     await OpenAICompatibilityService.saveConfiguration(
       baseUrl: _baseUrlController.text,
       apiKey: _apiKeyController.text,
-      modelId: _modelController.text,
+      modelId: modelId,
     );
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('ai_provider_openai_compatible_enabled', true);
