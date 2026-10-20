@@ -179,6 +179,4 @@ class OpenAICompatibilityService {
         .where((name) => name.isNotEmpty)
         .toList();
   }
-
-
 }
