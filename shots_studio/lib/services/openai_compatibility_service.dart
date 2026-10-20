@@ -14,6 +14,17 @@ class OpenAICompatibilityService {
 
   static const String defaultBaseUrl = 'http://localhost:11434/v1';
 
+  /// Persist a model list returned by the configured endpoint.
+  static Future<void> saveModelsCache(List<String> models) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(modelsCachePrefKey, models);
+  }
+
+  static Future<List<String>> getModelsCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(modelsCachePrefKey) ?? [];
+  }
+
   static Future<String> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     return normalizeBaseUrl(prefs.getString(baseUrlPrefKey) ?? defaultBaseUrl);
@@ -169,10 +180,6 @@ class OpenAICompatibilityService {
         .toList();
   }
 
-  static Future<void> saveModelsCache(List<String> models) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(modelsCachePrefKey, models);
-  }
 
   static Future<List<String>> getModelsCache() async {
     final prefs = await SharedPreferences.getInstance();
